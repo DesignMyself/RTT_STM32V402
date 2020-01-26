@@ -69,7 +69,7 @@
 #define RT_USING_CAN
 #define RT_USING_CAN1
 #define	CAN_STD
-#define RT_CAN_USING_HDR
+//#define RT_CAN_USING_HDR
 #define RT_USING_PIN
 #define RT_USING_PWM
 #define RT_USING_SPI

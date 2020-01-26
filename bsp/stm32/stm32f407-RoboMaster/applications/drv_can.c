@@ -11,17 +11,9 @@
  *                             fix bug.port to BSP [stm32]
  * 2019-03-27     YLZ          support double can channels, support stm32F4xx (only Legacy mode).
  * 2019-06-17     YLZ          port to new STM32F1xx HAL V1.1.3.
- *2020-01-25 从第299项开始修改了过滤器设置，增加了Used_EXT和Used_STD选项，还有是把滤波数组blank加入到设置中drv_can->FilterConfig.FilterBank=filter_cfg->items[i].blank;
  */
 
 #include "drv_can.h"
-#ifdef CAN_EXT//用于设置是扩展还是标准帧
-
-#define CAN_LEN 3
-#endif
-#ifdef CAN_STD
-#define CAN_LEN 21
-#endif
 #ifdef BSP_USING_CAN
 
 #define LOG_TAG    "drv_can"
@@ -303,12 +295,12 @@ static rt_err_t _can_control(struct rt_can_device *can, int cmd, void *arg)
 //                drv_can->FilterConfig.FilterIdLow = (((filter_cfg->items[i].id )<< 3)| 
 //                                                    (filter_cfg->items[i].ide << 2) | 
 //                                                    (filter_cfg->items[i].rtr << 1)) & 0xFFFF;
-							drv_can->FilterConfig.FilterIdHigh =(((uint32_t) (filter_cfg->items[i].id)<<CAN_LEN)&0xffff0000)>>16;
-							drv_can->FilterConfig.FilterIdLow = (((uint32_t) (filter_cfg->items[i].id)<<CAN_LEN)|CAN_ID_STD|CAN_RTR_DATA)&0xFFFF;
-							//drv_can->FilterConfig.FilterBank=filter_cfg->items[i].blank;//当不需要分组时需要把这个屏蔽
-                drv_can->FilterConfig.FilterMaskIdHigh =0X0000;// (filter_cfg->items[i].mask >> 16) & 0xFFFF;
-                drv_can->FilterConfig.FilterMaskIdLow =0X0000;// filter_cfg->items[i].mask & 0xFFFF;
-                drv_can->FilterConfig.FilterMode =filter_cfg->items[i].mode;
+							drv_can->FilterConfig.FilterIdHigh =(((uint32_t) (filter_cfg->items[i].id)<<21)&0xffff0000)>>16;
+							drv_can->FilterConfig.FilterIdLow = (((uint32_t) (filter_cfg->items[i].id)<<21)|CAN_ID_STD|CAN_RTR_DATA)&0xFFFF;
+							drv_can->FilterConfig.FilterBank=filter_cfg->items[i].blank;
+                drv_can->FilterConfig.FilterMaskIdHigh = 0xffff;//(filter_cfg->items[i].mask >> 16) & 0xFFFF;
+                drv_can->FilterConfig.FilterMaskIdLow =0xffff;// filter_cfg->items[i].mask & 0xFFFF;
+                drv_can->FilterConfig.FilterMode =CAN_FILTERMODE_IDMASK; //filter_cfg->items[i].mode;
                 /* Filter conf */
 							rt_kprintf("come into CAN_FLI_SET\n");
                 HAL_CAN_ConfigFilter(&drv_can->CanHandle, &drv_can->FilterConfig);
