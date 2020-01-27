@@ -21,26 +21,29 @@
 #include "drv_can.h"
 #include "app_uSart.h"
 #include "pid.h"
+#include "HDMI.H"
 #define CAN_DEV_NAME       "can1"      /* CAN 设备名称 */
 /* USER CODE BEGIN Variables */
 typedef __packed struct{
   float position;
-  int16_t w;
+  int16_t w;//速度值，单位R/MIN
   int16_t current;
   int8_t temperature;
 }MotoInfo_t;
 MotoInfo_t MotoInfo[4];
 		 Pid_t WheelPid;
 	Pid_t WheelPid2;
+float P_Pre=0;
+uint8_t CAN_Sign=0;
+float Circle=5;
+float sum=0;//用增量式统计圈数
+float first_P=0;
 /* USER CODE END Variables */
 static struct rt_semaphore rx_sem;     /* 用于接收消息的信号量 */
 static rt_device_t can_dev;            /* CAN 设备句柄 */
-static uint8_t data1[8]={0x12,0x33,0x33,0x36,0x99,0x77,0x33,0x66};
-static uint8_t data2[8]={0x19,0x39,0x35,0x56,0x19,0x07,0x35,0x86};
-static uint8_t data3[8]={0x89,0x89,0x85,0x86,0x89,0x87,0x85,0x86};
-static uint8_t data4[8]={0xa9,0xa9,0xa5,0xa6,0xa9,0xa7,0xa5,0xa6};
- int16_t MotoCurrent = 0;
-	int16_t MotoCurrent2=0;
+int16_t MotoCurrent = 0;//电机ID1电流值 
+int16_t MotoCurrent2=0;//电机ID2电流值 
+extern uint8_t PWM_Sign;
 extern int16_t speed_set;//速度设置
 /* 接收数据回调函数 */
 static rt_err_t can_rx_call(rt_device_t dev, rt_size_t size)
@@ -78,6 +81,7 @@ rt_size_t  can_send(struct rt_can_msg msg,uint32_t id,uint8_t data[8])
 	return size;
 
 }
+/********CAN发送函数用于向电机发送电流参数*******************************/
 uint8_t SetMoto( int16_t iq1, int16_t iq2, int16_t iq3, int16_t iq4)
 {
   uint8_t size=0;
@@ -97,54 +101,23 @@ uint8_t SetMoto( int16_t iq1, int16_t iq2, int16_t iq3, int16_t iq4)
 	size=rt_device_write(can_dev, 0, &msg, sizeof(msg));
 	return size;
 }
+/**********CAN发送线程，用于向电机发送电流参数*****************/
 static void can_send_thread(void *parameter)
 {
-//	uint8_t Can_Sign=0;
-//	 struct rt_can_msg msg = {0};
-//	     rt_size_t  size=0;
-	   PidInit(&WheelPid, DELTA_PID, 10000, 1500, 1.5, 0.1, 0.0);
+
+	   PidInit(&WheelPid, DELTA_PID, 10000, 5000,1.5, 0.1, 0.0);
 	//PidInit(&WheelPid2, POSITION_PID, 6000, 1500, 1.5, 0.2, 0.0);
 	rt_thread_mdelay(1000);
 	while(1)
 	{
-//		Can_Sign=uart1_getchar();
-//		if(Can_Sign==0x06)
-//		{
-//				
-//			 size=can_send(msg,0x100,data1);
-//			rt_kprintf("come into can 06 send%d\n",size);
-//			if (size == 0)
-//			{
-//					rt_kprintf("can dev write data failed!\n");
-//			}
-//		}
-//    if(Can_Sign==0x07)
-//		{
-//			 size=can_send(msg,0x1314,data2);
-//			if (size == 0)
-//			{
-//					rt_kprintf("can dev write data failed!\n");
-//			}
-//		}
-//     if(Can_Sign==0x08)
-//		{
-//			 size=can_send(msg,0x211,data3);
-//			if (size == 0)
-//			{
-//					rt_kprintf("can dev write data failed!\n");
-//			}
-//		}
-//		 if(Can_Sign==0x09)
-//		{
-//			 size=can_send(msg,0x486,data4);
-//			if (size == 0)
-//			{
-//					rt_kprintf("can dev write data failed!\n");
-//			}
-//		}
+
     /* 发送一帧 CAN 数据 */
 		rt_thread_mdelay(10);
-		MotoCurrent = PidCalc(&WheelPid, MotoInfo[0].w,speed_set);
+		if(CAN_Sign==1)//增加反馈判断，如果没有反馈就不能进行PID
+		{
+				MotoCurrent = PidCalc(&WheelPid, MotoInfo[0].w,speed_set);
+				CAN_Sign=0;
+		}
 		//MotoCurrent2 = PidCalc(&WheelPid2, MotoInfo[1].w, speed_set);
 		SetMoto(MotoCurrent,0, 0, 0);
 		
@@ -153,10 +126,14 @@ static void can_send_thread(void *parameter)
 	
 	
 }
+
+/********获取电机的CAN参数,位置，速度，电流，温度*******************/
 static void can_rx_thread(void *parameter)
 {
     int i;
     struct rt_can_msg rxmsg = {0};
+		
+	
     while (1)
     {
 //        /* hdr 值为 - 1，表示直接从 uselist 链表读取数据 */
@@ -169,22 +146,121 @@ static void can_rx_thread(void *parameter)
 		/* 处理得到的数据*/
 		if (((rxmsg.id>0x200) && (rxmsg.id<0x205)) && (rxmsg.ide== CAN_ID_STD) && (rxmsg.len== 8))
 		{
-			MotoInfo[rxmsg.id-0x200-1].position = ((rxmsg.data[0]<<8) | rxmsg.data[1])*360.0/8192.0;
+			MotoInfo[rxmsg.id-0x200-1].position = ((rxmsg.data[0]<<8) | rxmsg.data[1])*360.0/8191.0;
 			MotoInfo[rxmsg.id-0x200-1].w = ((rxmsg.data[2]<<8) | rxmsg.data[3]);
 			MotoInfo[rxmsg.id-0x200-1].current = ((rxmsg.data[4]<<8) | rxmsg.data[5]);
 			MotoInfo[rxmsg.id-0x200-1].temperature = rxmsg.data[6];
 		}
+		CAN_Sign=1;
+			if(PWM_Sign==0X08)
+		{		
+				if(0==sum)//为了得到初始位置
+				{
+					P_Pre=MotoInfo[0].position;//得到初始的位置
+					first_P=P_Pre;
+					sum=1;
+				}
+				else//当不是初始位置后
+				{
+						float i=0;
+						
+					if(MotoInfo[0].w>=0)//当电流值大于0的时候
+						{
+						
+		
+							i=MotoInfo[0].position-P_Pre;//
+						
+						}	
+					else
+						{
+					
+							i=P_Pre-MotoInfo[0].position;
+						
+						}
+							P_Pre=MotoInfo[0].position;
+						
+					if(i<0)
+						{
+							i=360+i;
+							if(i>=300)//采取这个作为屏蔽是因为这个地方会突然出现很大的数值，具体原因还没找到
+							{
+								i=3;
+							}
+//							send_string(1,"i值是");
+//							Value_Asii(1,i);
+//							send_string(1,"\n");
+//							if(i>300)
+//							{
+//										send_string(1,"上一个P是");
+//										Value_Asii(1,P);
+//										send_string(1,"\n");
+//										send_string(1,"Pre是");
+//										Value_Asii(1,P_Pre);
+//										send_string(1,"\n");
+//										send_string(1,"当前M1是");
+//										Value_Asii(1,MotoInfo[0].position);
+//										send_string(1,"\n");
+//								
+//							}
+						}
+						sum+=i;
+					
+						if((sum/360.0)>=(Circle*19))
+										{
+											speed_set=0;
+											PWM_Sign=0XFF;
+										}
+				}
+//										send_string(1,"当前圈数是");
+//										Value_Asii(1,sum/360.0);
+//										send_string(1,"\n");
+//										send_string(1,"Pre是");
+//										Value_Asii(1,P_Pre);
+//										send_string(1,"\n");
+//										send_string(1,"当前M1是");
+//										Value_Asii(1,MotoInfo[0].position);
+//										send_string(1,"\n");
+//										send_string(1,"当前差值是");
+//										Value_Asii(1,P_Pre-MotoInfo[0].position);
+//										send_string(1,"\n");
+//										rt_kprintf("*************\n");
+//								//sum+=(P_Pre-MotoInfo[0].position);//pre:360....now:355
+//										P_Pre=MotoInfo[0].position;
+			}
+		
     }
 }
 
 static void Para_Display(void *parameter)
 {
+	float speed=0;
 	while(1)
 	{
-		
-		rt_kprintf("当前速度是%d\n",MotoInfo[0].w/19);
-		rt_kprintf("当前电流是%d\n",MotoInfo[0].current);
-		rt_kprintf("PID后的电流值是%d\n",MotoCurrent);
+		speed=MotoInfo[0].w/19.00f;;
+		send_string(1,"当前速度是");
+		Value_Asii(1,speed);
+		send_string(1,"\n");
+//		rt_kprintf("当前速度是%d\n",speed);
+		send_string(1,"当前电流值是");
+		Value_Asii(1,MotoInfo[0].current);
+		send_string(1,"\n");
+//		rt_kprintf("PID后的电流值是%d\n",MotoCurrent);
+//		rt_kprintf("当前位置是%d\n",MotoInfo[0].position);
+		send_string(1,"当前位置是");
+		Value_Asii(1,MotoInfo[0].position);
+		send_string(1,"\n");
+		send_string(1,"sum is");
+		Value_Asii(1,sum);
+		send_string(1,"\n");
+		//rt_kprintf("当前圈数是%d\n",Circle);
+		send_string(1,"Circle is");
+		Value_Asii(1,Circle);
+		send_string(1,"\n");
+//		rt_kprintf("计数位置是%d\n",first_P);
+		send_string(1,"计数始位");
+		Value_Asii(1,first_P);
+		send_string(1,"\n");
+		rt_kprintf("**********************\n");
 		rt_thread_mdelay(500);
 		
 		

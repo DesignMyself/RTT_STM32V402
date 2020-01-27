@@ -5,6 +5,7 @@
 #include "app_uSart.h"
 #define KEY0			3
 #define KEY1			2
+uint8_t PWM_Sign=0;
 #define PWM_priority 1//PWM任务优先级
 #define PWM_stack_size 512//用来储存任务的栈大小
 #define PWM_timeslice  5	//若进入轮询时的时间片
@@ -16,8 +17,11 @@
 struct rt_device_pwm *pwm_dev;      /* PWM设备句柄 */  
 static rt_thread_t PWM_task=RT_NULL;//创建任务1的动态线程
 static rt_thread_t LED_TASK=RT_NULL;//创建LED任务线程
+extern float Circle;
+extern float sum;
 rt_uint32_t period, pulse;
 int16_t speed_set=300;
+extern float P_Pre;
 void PWM_Set()
 {
 		period = 200;    /* 周期为0.5ms，单位为纳秒ns 对于tim10来说单位是0.0005us*/
@@ -36,7 +40,7 @@ void PWM_Set()
 void PWM_Control_Entry(void *parameter)
 {
 	uint32_t PWM_Rate=200;//pwm值
-	uint8_t PWM_Sign=0;
+	
 	PWM_Set();
 	
 	//PWM_Control_Key();
@@ -73,6 +77,28 @@ void PWM_Control_Entry(void *parameter)
 		{
 			
 			speed_set=0;
+			
+		}
+		if(0x04==PWM_Sign)
+		{
+			speed_set=1000;
+			
+		}
+		if(0x05==PWM_Sign)
+		{
+			speed_set=-1000;
+			
+		}
+		if(0x06==PWM_Sign)
+		{
+			Circle+=0.5;
+		}
+		if(0x00==PWM_Sign)
+		{
+			sum=0;
+			Circle=5;
+			speed_set=400;
+			P_Pre=0;
 			
 		}
 			rt_pwm_set(pwm_dev ,4,PWM_Rate, PWM_Rate/2);

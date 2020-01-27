@@ -469,6 +469,11 @@
               <FileType>1</FileType>
               <FilePath>.\applications\can_used.c</FilePath>
             </File>
+            <File>
+              <FileName>HDMI_SEND.C</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\applications\HDMI_SEND.C</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
