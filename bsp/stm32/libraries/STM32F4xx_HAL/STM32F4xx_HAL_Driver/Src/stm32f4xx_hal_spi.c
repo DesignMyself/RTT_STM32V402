@@ -365,6 +365,7 @@ HAL_StatusTypeDef HAL_SPI_Init(SPI_HandleTypeDef *hspi)
 #else
     /* Init the low level hardware : GPIO, CLOCK, NVIC... */
     HAL_SPI_MspInit(hspi);
+		rt_kprintf("come into spi init5\n");
 #endif /* USE_HAL_SPI_REGISTER_CALLBACKS */
   }
 

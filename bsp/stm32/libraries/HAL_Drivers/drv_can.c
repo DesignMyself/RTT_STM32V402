@@ -299,18 +299,13 @@ static rt_err_t _can_control(struct rt_can_device *can, int cmd, void *arg)
             for (int i = 0; i < filter_cfg->count; i++)
             {
                 drv_can->FilterConfig.FilterBank = filter_cfg->items[i].hdr;
-//                drv_can->FilterConfig.FilterIdHigh = (filter_cfg->items[i].id >> 13) & 0xFFFF;
-//                drv_can->FilterConfig.FilterIdLow = (((filter_cfg->items[i].id )<< 3)| 
-//                                                    (filter_cfg->items[i].ide << 2) | 
-//                                                    (filter_cfg->items[i].rtr << 1)) & 0xFFFF;
-							drv_can->FilterConfig.FilterIdHigh =(((uint32_t) (filter_cfg->items[i].id)<<CAN_LEN)&0xffff0000)>>16;
-							drv_can->FilterConfig.FilterIdLow = (((uint32_t) (filter_cfg->items[i].id)<<CAN_LEN)|CAN_ID_STD|CAN_RTR_DATA)&0xFFFF;
+								drv_can->FilterConfig.FilterIdHigh =(((uint32_t) (filter_cfg->items[i].id)<<CAN_LEN)&0xffff0000)>>16;
+								drv_can->FilterConfig.FilterIdLow = (((uint32_t) (filter_cfg->items[i].id)<<CAN_LEN)|CAN_ID_STD|CAN_RTR_DATA)&0xFFFF;
 							//drv_can->FilterConfig.FilterBank=filter_cfg->items[i].blank;//当不需要分组时需要把这个屏蔽
                 drv_can->FilterConfig.FilterMaskIdHigh =0X0000;// (filter_cfg->items[i].mask >> 16) & 0xFFFF;
                 drv_can->FilterConfig.FilterMaskIdLow =0X0000;// filter_cfg->items[i].mask & 0xFFFF;
                 drv_can->FilterConfig.FilterMode =filter_cfg->items[i].mode;
                 /* Filter conf */
-							rt_kprintf("come into CAN_FLI_SET\n");
                 HAL_CAN_ConfigFilter(&drv_can->CanHandle, &drv_can->FilterConfig);
             }
         }
@@ -878,7 +873,7 @@ int rt_hw_can_init(void)
 #endif
     /* config default filter */
     CAN_FilterTypeDef filterConf = {0};
-//    filterConf.FilterIdHigh = (((uint32_t)0x100<<21)&0xFFFF0000)>>16;		
+//    filterConf.FilterIdHigh = (((uint32_t)0x100<<21)&0xFFFF0000)>>16;		//如果想只允许一个ID使用就用这个，此时ID为0X100
 //    filterConf.FilterIdLow =(((uint32_t)0x100<<21)|CAN_ID_STD|CAN_RTR_DATA)&0xFFFF;
 //    filterConf.FilterMaskIdHigh =0xffff;
 //    filterConf.FilterMaskIdLow =0xffff ;

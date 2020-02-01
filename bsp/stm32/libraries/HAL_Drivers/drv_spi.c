@@ -80,7 +80,7 @@ static rt_err_t stm32_spi_init(struct stm32_spi *spi_drv, struct rt_spi_configur
 {
     RT_ASSERT(spi_drv != RT_NULL);
     RT_ASSERT(cfg != RT_NULL);
-
+		
     SPI_HandleTypeDef *spi_handle = &spi_drv->handle;
 
     if (cfg->mode & RT_SPI_SLAVE)
@@ -209,6 +209,7 @@ static rt_err_t stm32_spi_init(struct stm32_spi *spi_drv, struct rt_spi_configur
 
     if (HAL_SPI_Init(spi_handle) != HAL_OK)
     {
+			
         return RT_EIO;
     }
 
@@ -239,9 +240,9 @@ static rt_err_t stm32_spi_init(struct stm32_spi *spi_drv, struct rt_spi_configur
         HAL_NVIC_SetPriority(spi_drv->config->dma_tx->dma_irq, 0, 1);
         HAL_NVIC_EnableIRQ(spi_drv->config->dma_tx->dma_irq);
     }
-
+	
     __HAL_SPI_ENABLE(spi_handle);
-
+		
     LOG_D("%s init done", spi_drv->config->bus_name);
     return RT_EOK;
 }
@@ -459,10 +460,10 @@ static int rt_hw_spi_bus_init(void)
                 UNUSED(tmpreg); /* To avoid compiler warnings */
             }
         }
-
+				
         result = rt_spi_bus_register(&spi_bus_obj[i].spi_bus, spi_config[i].bus_name, &stm_spi_ops);
         RT_ASSERT(result == RT_EOK);
-
+				
         LOG_D("%s bus init done", spi_config[i].bus_name);
     }
 
@@ -888,6 +889,7 @@ void SPI2_DMA_RX_TX_IRQHandler(void)
 int rt_hw_spi_init(void)
 {
     stm32_get_dma_info();
+			
     return rt_hw_spi_bus_init();
 }
 INIT_BOARD_EXPORT(rt_hw_spi_init);
