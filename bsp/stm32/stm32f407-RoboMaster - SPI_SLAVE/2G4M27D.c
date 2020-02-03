@@ -30,8 +30,7 @@
 * rt_spi_configure(spi_dev_w25q, &cfg);//当调用这个的时候就会调节HAL_msp_c中的底程初始化
 rt_hw_spi_device_attach("spi1", "spi10", GPIOB, GPIO_PIN_0);//必须把设备spi10注册到spi1上才可以使用spi接口，不然会发生错
 *在使用驱动过程中发现在驱动drv.spi中会存在进入不了SLAVE模式的情况，鉴于这个原因，把驱动中的模式写死了，第96行
-*spi中当使用从机模式时，需要使用主机的时钟CLK,还有从模式的CS引脚也可使用主机上的引脚
-*注意rt_spi_send,rt_spi_transfer,rt_spi_rece......这几种发送方式得到的数据不一样
+*spi中当使用从机模式时，需要使用主机的时钟CLK
 */
 
 
@@ -47,10 +46,10 @@ void SPI_Send_Entry(void *parameter)
 {
 	uint16_t w25x_read_id=0x90;
 	uint8_t kk[5]={0x23,0x25,0x66,0x99,0x47};
-	uint8_t jj[10]={0}; 
+	uint8_t jj[5]={0}; 
 	while(1)
 	{
-		rt_spi_transfer(spi_dev_w25q,kk,jj,5);
+		rt_spi_transfer(spi_dev_w25q,kk,jj,5);//RT_SPI有三种不同的发送方式，要注意区别
 	
 		if(jj[0]!=0)
 		{
@@ -83,7 +82,7 @@ void SPI_Open(const char* SPI_Device_name,const char* SPI_BUS_name)
 						uint8_t i=0;
             struct rt_spi_configuration cfg;
             cfg.data_width = 8;
-            cfg.mode =RT_SPI_MASTER| RT_SPI_MODE_0 | RT_SPI_MSB; /* SPI Compatible: Mode 0 and Mode 3 RT_SPI_MODE_0 | RT_SPI_MSB|*/
+            cfg.mode =RT_SPI_SLAVE| RT_SPI_MODE_0 | RT_SPI_MSB; /* SPI Compatible: Mode 0 and Mode 3 RT_SPI_MODE_0 | RT_SPI_MSB|*/
             cfg.max_hz = 2 * 100 * 100; /* 2M */
             i=rt_spi_configure(spi_dev_w25q, &cfg);//当调用这个的时候就会调节HAL_msp_c中的底程初始化
 						if(RT_EOK==i)

@@ -97,8 +97,12 @@ static rt_err_t stm32_spi_init(struct stm32_spi *spi_drv, struct rt_spi_configur
 //        spi_handle->Init.Mode = SPI_MODE_MASTER;
 //				rt_kprintf("come into master\n");
 //    }
-//	#ifdef (RT_SPI1_SLAVE || RT_SPI1_SLAVE
+		#ifdef RT_SPI1_SLAVE 
 		spi_handle->Init.Mode =SPI_MODE_SLAVE;
+	#endif
+	#ifdef RT_SPI1_MASTER 
+		spi_handle->Init.Mode =SPI_MODE_MASTER;
+	#endif
     if (cfg->mode & RT_SPI_3WIRE)
     {
         spi_handle->Init.Direction = SPI_DIRECTION_1LINE;
@@ -148,9 +152,15 @@ static rt_err_t stm32_spi_init(struct stm32_spi *spi_drv, struct rt_spi_configur
     }
     else
     {
-        spi_handle->Init.NSS = SPI_NSS_SOFT;
+			#ifdef RT_SPI1_SLAVE 
+		spi_handle->Init.NSS =SPI_NSS_HARD_INPUT;// 当使用主机时使得SPI_NSS_SOFT ;//当使用从机时要使用SPI_NSS_HARD_INPUT
+	#endif
+	#ifdef RT_SPI1_MASTER 
+		spi_handle->Init.NSS =SPI_NSS_SOFT;// 当使用主机时使得 ;//当使用从机时要使用
+	#endif
+			
     }
-
+	
     uint32_t SPI_APB_CLOCK;
 
 #if defined(SOC_SERIES_STM32F0) || defined(SOC_SERIES_STM32G0)
@@ -493,7 +503,7 @@ rt_err_t rt_hw_spi_device_attach(const char *bus_name, const char *device_name, 
     /* initialize the cs pin && select the slave*/
     GPIO_InitTypeDef GPIO_Initure;
     GPIO_Initure.Pin = cs_gpio_pin;
-    GPIO_Initure.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_Initure.Mode = GPIO_MODE_OUTPUT_PP ;
     GPIO_Initure.Pull = GPIO_PULLUP;
     GPIO_Initure.Speed = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(cs_gpiox, &GPIO_Initure);
