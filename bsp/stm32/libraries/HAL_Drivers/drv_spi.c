@@ -8,6 +8,10 @@
  * 2018-11-5      SummerGift   first version
  * 2018-12-11     greedyhao    Porting for stm32f7xx
  * 2019-01-03     zylx         modify DMA initialization and spixfer function
+ *20200202* rt_spi_configure(spi_dev_w25q, &cfg);//当调用这个的时候就会调节HAL_msp_c中的底程初始化
+rt_hw_spi_device_attach("spi1", "spi10", GPIOB, GPIO_PIN_0);//必须把设备spi10注册到spi1上才可以使用spi接口，不然会发生错
+*在使用驱动过程中发现在驱动drv.spi中会存在进入不了SLAVE模式的情况，鉴于这个原因，把驱动中的模式写死了，第96行
+*spi中当使用从机模式时，需要使用主机的时钟CLK
  */
 
 #include "board.h"
@@ -83,15 +87,18 @@ static rt_err_t stm32_spi_init(struct stm32_spi *spi_drv, struct rt_spi_configur
 		
     SPI_HandleTypeDef *spi_handle = &spi_drv->handle;
 
-    if (cfg->mode & RT_SPI_SLAVE)
-    {
-        spi_handle->Init.Mode = SPI_MODE_SLAVE;
-    }
-    else
-    {
-        spi_handle->Init.Mode = SPI_MODE_MASTER;
-    }
-
+//    if (cfg->mode & RT_SPI_SLAVE)
+//    {
+//        spi_handle->Init.Mode = SPI_MODE_SLAVE;
+//					
+//    }
+//    else
+//    {
+//        spi_handle->Init.Mode = SPI_MODE_MASTER;
+//				rt_kprintf("come into master\n");
+//    }
+//	#ifdef (RT_SPI1_SLAVE || RT_SPI1_SLAVE
+		spi_handle->Init.Mode =SPI_MODE_SLAVE;
     if (cfg->mode & RT_SPI_3WIRE)
     {
         spi_handle->Init.Direction = SPI_DIRECTION_1LINE;
@@ -136,7 +143,8 @@ static rt_err_t stm32_spi_init(struct stm32_spi *spi_drv, struct rt_spi_configur
 
     if (cfg->mode & RT_SPI_NO_CS)
     {
-        spi_handle->Init.NSS = SPI_NSS_SOFT;
+        
+				spi_handle->Init.NSS = RT_SPI_NO_CS;
     }
     else
     {
@@ -535,7 +543,7 @@ void SPI1_DMA_RX_IRQHandler(void)
 {
     /* enter interrupt */
     rt_interrupt_enter();
-
+		//rt_kprintf("come into DMA_RX HAN\n");
     HAL_DMA_IRQHandler(&spi_bus_obj[SPI1_INDEX].dma.handle_rx);
 
     /* leave interrupt */
@@ -566,7 +574,7 @@ void SPI2_IRQHandler(void)
 {
     /* enter interrupt */
     rt_interrupt_enter();
-
+		
     HAL_SPI_IRQHandler(&spi_bus_obj[SPI2_INDEX].handle);
 
     /* leave interrupt */

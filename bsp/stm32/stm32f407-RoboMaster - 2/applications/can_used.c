@@ -30,15 +30,15 @@ typedef __packed struct{
   int16_t current;
   int8_t temperature;
 }MotoInfo_t;
-MotoInfo_t MotoInfo[4];
-		 Pid_t WheelPid;
-	Pid_t WheelPid2;
-float P_Pre=0;
+MotoInfo_t MotoInfo[4];//四个电机
+		 Pid_t WheelPid;//电机1PID设置
+	Pid_t WheelPid2;//电机2 PID设置
+float P_Pre=0;//电机上一个位置记录
 uint8_t CAN_Sign=0;
-float Circle=5;
-float distance=0.00;
+float Circle=5;//需要电机转动的圈数
+float distance=0.00;//总共要走的角度数
 float sum=0;//用增量式统计圈数
-float first_P=0;
+float first_P=0;//记录位置的角度起点
 uint8_t end_run=1;
 /* USER CODE END Variables */
 static struct rt_semaphore rx_sem;     /* 用于接收消息的信号量 */
@@ -281,7 +281,7 @@ rt_err_t  CAN_Open(const char* name)//打开CAN口的函数
     RT_ASSERT(res == RT_EOK);
 		
 		
-	
+
     /* 设置接收回调函数 */
     rt_device_set_rx_indicate(can_dev, can_rx_call);
 #ifdef RT_CAN_USING_HDR

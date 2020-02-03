@@ -169,4 +169,6 @@
 #define  RT_USING_SPI
 #define BSP_USING_SPI
 #define BSP_USING_SPI1
+#define BSP_SPI1_RX_USING_DMA
+
 #endif

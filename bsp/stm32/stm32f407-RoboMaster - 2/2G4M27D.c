@@ -29,6 +29,8 @@
  * ³ÌĞò¹¦ÄÜ£ºÍ¨¹ıSPIÉè±¸¶ÁÈ¡ w25q µÄ ID Êı¾İ
 * rt_spi_configure(spi_dev_w25q, &cfg);//µ±µ÷ÓÃÕâ¸öµÄÊ±ºò¾Í»áµ÷½ÚHAL_msp_cÖĞµÄµ×³Ì³õÊ¼»¯
 rt_hw_spi_device_attach("spi1", "spi10", GPIOB, GPIO_PIN_0);//±ØĞë°ÑÉè±¸spi10×¢²áµ½spi1ÉÏ²Å¿ÉÒÔÊ¹ÓÃspi½Ó¿Ú£¬²»È»»á·¢Éú´í
+*ÔÚÊ¹ÓÃÇı¶¯¹ı³ÌÖĞ·¢ÏÖÔÚÇı¶¯drv.spiÖĞ»á´æÔÚ½øÈë²»ÁËSLAVEÄ£Ê½µÄÇé¿ö£¬¼øÓÚÕâ¸öÔ­Òò£¬°ÑÇı¶¯ÖĞµÄÄ£Ê½Ğ´ËÀÁË£¬µÚ96ĞĞ
+*spiÖĞµ±Ê¹ÓÃ´Ó»úÄ£Ê½Ê±£¬ĞèÒªÊ¹ÓÃÖ÷»úµÄÊ±ÖÓCLK
 */
 
 
@@ -37,15 +39,28 @@ rt_hw_spi_device_attach("spi1", "spi10", GPIOB, GPIO_PIN_0);//±ØĞë°ÑÉè±¸spi10×¢²
 #include "drv_spi.h"
 #include <rtdevice.h>
 #define W25Q_SPI_DEVICE_NAME     "spi10"//ÕâÀïÖ»ÄÜÊÇspi10,ÒòÎªÊ¹ÓÃµÄÊÇspi1µÄµÚ0ÈËÉè±¸
+static struct rt_semaphore spi1_rx_sem;     /* ÓÃÓÚ½ÓÊÕÏûÏ¢µÄĞÅºÅÁ¿ */
 struct rt_spi_device *spi_dev_w25q;
+
 void SPI_Send_Entry(void *parameter)
 {
 	uint16_t w25x_read_id=0x90;
 	uint8_t kk[5]={0x23,0x25,0x66,0x99,0x47};
-		 
+	uint8_t jj[5]={0}; 
 	while(1)
 	{
-		rt_spi_send(spi_dev_w25q,kk,5);
+		rt_spi_send_then_recv(spi_dev_w25q,kk,5,jj,5);
+	
+		if(jj[0]!=0)
+		{
+			rt_kprintf("½ÓÊÕµ½SPIÊı¾İ\n");
+			for(uint8_t i=0;i<5;i++)
+			{
+				rt_kprintf("%x ",jj[i]);
+				
+			}
+			rt_kprintf("½ÓÊÕÊı¾İÍê±Ï\n");
+		}
 		rt_thread_delay(500);
 		
 	}
@@ -64,15 +79,18 @@ void SPI_Open(const char* SPI_Device_name,const char* SPI_BUS_name)
     }
 		else
 		{
-			
+						uint8_t i=0;
             struct rt_spi_configuration cfg;
             cfg.data_width = 8;
-            cfg.mode = RT_SPI_MODE_0 | RT_SPI_MSB; /* SPI Compatible: Mode 0 and Mode 3 */
+            cfg.mode =RT_SPI_SLAVE| RT_SPI_MODE_0 | RT_SPI_MSB; /* SPI Compatible: Mode 0 and Mode 3 RT_SPI_MODE_0 | RT_SPI_MSB|*/
             cfg.max_hz = 2 * 1000 * 1000; /* 2M */
-            rt_spi_configure(spi_dev_w25q, &cfg);//µ±µ÷ÓÃÕâ¸öµÄÊ±ºò¾Í»áµ÷½ÚHAL_msp_cÖĞµÄµ×³Ì³õÊ¼»¯
-			
+            i=rt_spi_configure(spi_dev_w25q, &cfg);//µ±µ÷ÓÃÕâ¸öµÄÊ±ºò¾Í»áµ÷½ÚHAL_msp_cÖĞµÄµ×³Ì³õÊ¼»¯
+						if(RT_EOK==i)
+						{
+							rt_kprintf("ÅäÖÃ³É¹¦\n");
+						}
 		}
-	
+		
 	
 }
 static void spi_w25q_sample(int argc, char *argv[])
