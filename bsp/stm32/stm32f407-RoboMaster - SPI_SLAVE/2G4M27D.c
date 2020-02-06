@@ -45,7 +45,7 @@ struct rt_spi_device *spi_dev_w25q;
 void SPI_Send_Entry(void *parameter)
 {
 	uint16_t w25x_read_id=0x90;
-	uint8_t kk[5]={0x23,0x25,0x66,0x99,0x47};
+	uint8_t kk[5]={0x23,0x52,0x66,0x99,0x88};
 	uint8_t jj[5]={0}; 
 	while(1)
 	{

@@ -67,12 +67,11 @@
 #define RT_SERIAL_USING_DMA
 #define RT_SERIAL_RB_BUFSZ 64
 #define RT_USING_CAN
-#define RT_USING_CAN1
-#define	CAN_STD
-//#define RT_CAN_USING_HDR
+#define RT_CAN_USING_HDR
 #define RT_USING_PIN
 #define RT_USING_PWM
-#define RT_USING_SPI1
+#define RT_USING_SPI
+#define RT_USING_QSPI
 
 /* Using USB */
 
@@ -133,6 +132,15 @@
 
 /* peripheral libraries and drivers */
 
+#define PKG_USING_NRF24L01
+#define PKG_USING_NRF24L01_LATEST_VERSION
+#define PKG_NRF24L01_VERSION "latest"
+#define PKG_USING_NRF24L01_DEMO
+#define PKG_NRF24L01_DEMO_ROLE_PTX
+#define PKG_NRF24L01_DEMO_SPI_DEV_NAME "spi10"
+#define PKG_NRF24L01_DEMO_CE_PIN -1
+#define PKG_NRF24L01_DEMO_IRQ_PIN -1
+#define PKG_NRF24L01_DEMO_INTERVAL_SEND 500
 
 /* miscellaneous packages */
 
@@ -144,7 +152,7 @@
 
 /* Hardware Drivers Config */
 
-#define SOC_STM32F407VE
+#define SOC_STM32F407ZG
 
 /* Onboard Peripheral Drivers */
 
@@ -155,22 +163,17 @@
 #define BSP_USING_GPIO
 #define BSP_USING_UART
 #define BSP_USING_UART1
-#define BSP_USING_CAN
-#define BSP_USING_CAN1
 #define BSP_UART1_RX_USING_DMA
-#define BSP_USING_PWM2
-
-
 #define BSP_USING_PWM
 #define BSP_USING_PWM5
+#define BSP_USING_PWM2
 #define BSP_USING_PWM2_CH4
-#define RT_USING_COMPONENTS_INIT
-#define RT_SAMPLES_AUTORUN
 #define  RT_USING_SPI
 #define BSP_USING_SPI
 #define BSP_USING_SPI1
 #define BSP_SPI1_RX_USING_DMA
 #define RT_SPI1_MASTER 
-//#define BSP_SPI1_TX_USING_DMA
+/* Board extended module Drivers */
+
 
 #endif

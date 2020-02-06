@@ -332,10 +332,10 @@
             <v6WtE>0</v6WtE>
             <v6Rtti>0</v6Rtti>
             <VariousControls>
-              <MiscControls></MiscControls>
+              <MiscControls>--c99</MiscControls>
               <Define>USE_HAL_DRIVER, STM32F407xx</Define>
               <Undefine></Undefine>
-              <IncludePath>.;..\..\..\include;applications;.;board;board\CubeMX_Config\Inc;board\ports;..\libraries\HAL_Drivers;..\libraries\HAL_Drivers\config;..\..\..\libcpu\arm\common;..\..\..\libcpu\arm\cortex-m4;..\..\..\components\drivers\include;..\..\..\components\drivers\include;..\..\..\components\drivers\include;..\..\..\components\drivers\spi;..\..\..\components\drivers\include;..\..\..\components\drivers\include;..\..\..\components\libc\compilers\common;..\libraries\STM32F4xx_HAL\STM32F4xx_HAL_Driver\Inc;..\libraries\STM32F4xx_HAL\CMSIS\Device\ST\STM32F4xx\Include;..\libraries\STM32F4xx_HAL\CMSIS\Include</IncludePath>
+              <IncludePath>.;..\..\..\include;applications;.;board;board\CubeMX_Config\Inc;board\ports;..\libraries\HAL_Drivers;..\libraries\HAL_Drivers\config;packages\nrf24l01-latest\demo;packages\nrf24l01-latest\src;..\..\..\libcpu\arm\common;..\..\..\libcpu\arm\cortex-m4;..\..\..\components\drivers\include;..\..\..\components\drivers\include;..\..\..\components\drivers\include;..\..\..\components\drivers\spi;..\..\..\components\drivers\include;..\..\..\components\drivers\include;..\..\..\components\libc\compilers\common;..\libraries\STM32F4xx_HAL\STM32F4xx_HAL_Driver\Inc;..\libraries\STM32F4xx_HAL\CMSIS\Device\ST\STM32F4xx\Include;..\libraries\STM32F4xx_HAL\CMSIS\Include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -454,36 +454,6 @@
               <FileType>1</FileType>
               <FilePath>applications\main.c</FilePath>
             </File>
-            <File>
-              <FileName>can_used.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\applications\can_used.c</FilePath>
-            </File>
-            <File>
-              <FileName>HDMI_SEND.C</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\applications\HDMI_SEND.C</FilePath>
-            </File>
-            <File>
-              <FileName>pid.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\applications\pid.c</FilePath>
-            </File>
-            <File>
-              <FileName>PWM_Control.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\applications\PWM_Control.c</FilePath>
-            </File>
-            <File>
-              <FileName>USART.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\applications\USART.c</FilePath>
-            </File>
-            <File>
-              <FileName>2G4M27D.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\2G4M27D.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -525,6 +495,11 @@
               <FilePath>..\libraries\HAL_Drivers\drv_spi.c</FilePath>
             </File>
             <File>
+              <FileName>drv_qspi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\libraries\HAL_Drivers\drv_qspi.c</FilePath>
+            </File>
+            <File>
               <FileName>drv_can.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\libraries\HAL_Drivers\drv_can.c</FilePath>
@@ -533,6 +508,26 @@
               <FileName>drv_common.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\libraries\HAL_Drivers\drv_common.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>nRF24L01</GroupName>
+          <Files>
+            <File>
+              <FileName>demo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>packages\nrf24l01-latest\demo\demo.c</FilePath>
+            </File>
+            <File>
+              <FileName>nrf24l01.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>packages\nrf24l01-latest\src\nrf24l01.c</FilePath>
+            </File>
+            <File>
+              <FileName>nrf24l01_port.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>packages\nrf24l01-latest\src\nrf24l01_port.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -666,6 +661,11 @@
               <FileName>spi_dev.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\components\drivers\spi\spi_dev.c</FilePath>
+            </File>
+            <File>
+              <FileName>qspi_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\components\drivers\spi\qspi_core.c</FilePath>
             </File>
             <File>
               <FileName>completion.c</FileName>

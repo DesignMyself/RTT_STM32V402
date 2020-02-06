@@ -13,6 +13,7 @@ uint8_t PWM_Sign=0;
 #define Motor1_PWM					"pwm10"
 #define PWM_DEV_CHANNEL     2      /* PWM通道 */
 #define LED1_PA6	 GET_PIN(A,6)
+#define CS_Control GET_PIN(A,4)
 struct rt_device_pwm *pwm_dev;      /* PWM设备句柄 */  
 static rt_thread_t PWM_task=RT_NULL;//创建任务1的动态线程
 static rt_thread_t LED_TASK=RT_NULL;//创建LED任务线程
@@ -133,6 +134,8 @@ extern	uint8_t Init_Sign_SPI;
 int PWM_Control(void)
 {
 	rt_pin_mode(LED1_PA6,PIN_MODE_OUTPUT);
+	rt_pin_mode(CS_Control,PIN_MODE_OUTPUT);
+	rt_pin_write(CS_Control,1);
 	uart1_open("uart1");
 	/*创建线程1*/
 	PWM_task=rt_thread_create("PWM_task",
